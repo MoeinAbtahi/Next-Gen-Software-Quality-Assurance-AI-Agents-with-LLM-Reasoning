@@ -113,3 +113,17 @@ Use this youtube link as a reference:
 
 https://www.youtube.com/watch?v=dMH6q_NkY9w
 
+
+### Running on Your PC
+
+1. Set the webhook URL as an environment variable:  
+   ```bash
+   set WEBHOOK_URL=https://expert-briefly-guinea.ngrok-free.app
+   ```
+
+2. Start an ngrok tunnel:  
+   ```bash
+   ngrok http 5678 --host-header=expert-briefly-guinea.ngrok-free.app
+   ```
+
+This ensures your local server is accessible via the specified ngrok URL. Let me know if you need further refinements! 🚀
