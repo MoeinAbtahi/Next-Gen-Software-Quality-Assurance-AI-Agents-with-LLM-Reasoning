@@ -66,15 +66,7 @@ Choose one of these methods based on how you installed `n8n`:
    ```
    - It will run on `http://localhost:5678` by default.
    - Verify it’s working by opening `http://localhost:5678` in your browser.
-
-#### Option 2: Via Docker
-1. Run `n8n` in a Docker container:
-   ```
-   docker run -it --rm -p 5678:5678 n8nio/n8n
-   ```
-   - `-p 5678:5678` maps port 5678 on your machine to the container.
-   - Verify it’s running at `http://localhost:5678`.
-
+     
 ---
 
 ### Step 3: Expose n8n with ngrok
