@@ -30,6 +30,7 @@ def concatenate(a, b):
 def safe_divide(a, b):
     return a / 0
 
+
 # Issue 6: IndentationError
 def some_function():
 print("This is incorrect indentation.")
