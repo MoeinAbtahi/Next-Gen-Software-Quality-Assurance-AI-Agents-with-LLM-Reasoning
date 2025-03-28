@@ -47,3 +47,4 @@ from math import somemathfunction
 
 # Issue 10: AssertionError, incorrect assertion
 assert add_numbers(5, 10) == 10
+
