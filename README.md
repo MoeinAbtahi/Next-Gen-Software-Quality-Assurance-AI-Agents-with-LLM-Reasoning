@@ -1,4 +1,9 @@
-# n8n.AI.Agnet
+# Next-Gen Software Quality Assurance: AI Agents with LLM Reasoning
+
+This project examines the application of autonomous AI agents, powered by large language models (LLMs), to automate and improve software quality assurance tasks, including code review, bug detection, and patch generation.
+
+
+
 
 To run `n8n` locally on your machine, you’ll need to install it and set it up so it runs on your localhost. Below are the steps to achieve this using different methods, assuming you’re using a Windows machine (since you mentioned CMD earlier). These instructions will also work on macOS or Linux with slight adjustments.
 
