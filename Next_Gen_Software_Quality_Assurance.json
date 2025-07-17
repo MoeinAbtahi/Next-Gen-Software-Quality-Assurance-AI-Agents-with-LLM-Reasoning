@@ -1,0 +1,2081 @@
+{
+  "name": "Next Gen Software Quality Assurance",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        280,
+        -1100
+      ],
+      "id": "95f4b686-62b4-46cf-a16b-b95b738cf8a0",
+      "name": "When chat message received",
+      "webhookId": "31ef75fe-a7a7-44ea-8b98-8a0abbd0bd09"
+    },
+    {
+      "parameters": {
+        "content": "Test Case Generation based on Original Files",
+        "height": 320,
+        "width": 2940,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        400,
+        -400
+      ],
+      "typeVersion": 1,
+      "id": "57b3fba5-41b4-465a-bc0d-e28d88e88000",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Save to Test Location1').item.json.test_location }}",
+        "dataPropertyName": "Test_Case",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        3200,
+        -280
+      ],
+      "id": "7c23befe-9b46-48d3-8b4b-ca041021601b",
+      "name": "Write Test Cases1",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "=output",
+        "binaryPropertyName": "Test_Case",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        2860,
+        -280
+      ],
+      "id": "71d6c0e9-cb7b-45aa-a300-6cc4ce3c3bd4",
+      "name": "Convert to Test File1"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "binaryPropertyName": "Original_Code",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1320,
+        -280
+      ],
+      "id": "45942c2d-5157-44ab-b80c-1b9a0dfecff3",
+      "name": "Extract Original Files1"
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{$json[\"file_Location\"]}}",
+        "options": {
+          "mimeType": "text",
+          "dataPropertyName": "Original_Code"
+        }
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1160,
+        -280
+      ],
+      "id": "a1d6fd39-e566-40c8-847b-17c01c17b56d",
+      "name": "Read Original Files1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        980,
+        -280
+      ],
+      "id": "d063586a-521c-4b93-9ebc-0c0f28af4e83",
+      "name": "Loop to Create Test Cases1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputItems = $input.all();\n\nconst grouped = {};\n\nfor (const item of inputItems) {\n  const normalized = {};\n  for (const key in item.json) {\n    normalized[key.toLowerCase()] = item.json[key];\n  }\n\n  const {\n    file_location,\n    file_name,\n    line,\n    message,\n    type,\n    output_location,\n    test_location,\n    test_file_name\n  } = normalized;\n\n  const key = `${file_location}||${file_name}`;\n\n  if (!grouped[key]) {\n    grouped[key] = {\n      file_Location: file_location,\n      file_name,\n      output_location,\n      test_location,\n      test_file_name,\n      issues: []\n    };\n  }\n\n  grouped[key].issues.push({ line, message, type });\n}\n\nconst result = [];\n\nfor (const key in grouped) {\n  const {\n    file_Location,\n    file_name,\n    output_location,\n    test_location,\n    test_file_name,\n    issues\n  } = grouped[key];\n\n  const issueDescriptions = issues\n    .map((issue, index) => {\n      return `Issue ${index + 1}: The detected \"${issue.type}\" issue by SonarQube is on line: ${issue.line}. Description of how to solve this code issue: \"${issue.message}\".`;\n    })\n    .join(\"\\n\");\n\n  result.push({\n    json: {\n      file_Location,\n      file_name,\n      output_location,\n      test_location: test_location || \"\",\n      test_file_name: test_file_name || \"\",\n      issueSummary: issueDescriptions,\n      totalIssues: issues.length\n    }\n  });\n}\n\nreturn result;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        -280
+      ],
+      "id": "baa50e37-3a65-450c-8c39-53f63b582df9",
+      "name": "Add Output (Test) Location1"
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $('When chat message received').first().json.chatInput }}",
+        "options": {
+          "fileExtension": ".csv",
+          "fileName": "issues",
+          "mimeType": "csv",
+          "dataPropertyName": "CSV_data"
+        }
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        460,
+        -280
+      ],
+      "id": "8aa8f395-00d4-4f0b-9e11-57b824733f12",
+      "name": "Read CSV for Test Cases (Original)1"
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "=CSV_data",
+        "options": {
+          "headerRow": true,
+          "readAsString": false
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        640,
+        -280
+      ],
+      "id": "6da141f5-78e1-412e-a34a-3d2aa75c03bf",
+      "name": "Extract CSV for Test Cases (Original)1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const testLocation = $('Loop to Create Test Cases1').item.json.test_location;\n\nif (!testLocation) {\n  throw new Error('Missing \"test_location\"');\n}\n\nconst dir = testLocation.replace(/[\\\\\\/][^\\\\\\/]+$/, '');\nconst fileName = testLocation.split(/[/\\\\]/).pop();\n\nreturn {\n  json: {\n    directory: dir,\n    fileName: fileName,\n    test_location: testLocation\n  },\n  binary: {\n    Test_Case: $input.first().binary.Test_Case\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3040,
+        -280
+      ],
+      "id": "e8317bff-589c-41a6-a393-7a3d367927b5",
+      "name": "Save to Test Location1"
+    },
+    {
+      "parameters": {
+        "model": "deepseek-coder-v2:16b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        1800,
+        -220
+      ],
+      "id": "e6b39513-1a6c-430d-98f3-7281e11a12c2",
+      "name": "Code Issue Revisor4",
+      "credentials": {
+        "ollamaApi": {
+          "id": "DMLEO8iwb8FGxnIA",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "codellama:13b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        2080,
+        -220
+      ],
+      "id": "f8a0ae7f-cd85-413b-8174-1638bbdc1fb8",
+      "name": "Code Issue Revisor5",
+      "credentials": {
+        "ollamaApi": {
+          "id": "DMLEO8iwb8FGxnIA",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "qwen2.5-coder:14b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        2400,
+        -220
+      ],
+      "id": "427b4c63-6eaa-4899-b643-d2b8d801bd84",
+      "name": "Ollama Chat Model3",
+      "credentials": {
+        "ollamaApi": {
+          "id": "DMLEO8iwb8FGxnIA",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "deepseek-coder-v2:16b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        1500,
+        -220
+      ],
+      "id": "dca04c75-4b7b-44bc-97c1-9bfe51215c92",
+      "name": "Ollama Chat Model4",
+      "credentials": {
+        "ollamaApi": {
+          "id": "DMLEO8iwb8FGxnIA",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Remove leading and trailing triple backticks and optional language tag\nconst rawOutput = $input.first().json.output // or the actual path to model output\n\nconst cleaned_code = rawOutput\n    .replace(/^```[a-z]*\\n/i, \"\")  // Remove opening ```python or similar\n    .replace(/\\n```$/, \"\");        // Remove closing ```\n\nreturn { output: cleaned_code };\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2720,
+        -280
+      ],
+      "id": "6d87cba5-146b-4f9f-9097-e7e677811fda",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "content": "Revision of Original File",
+        "height": 320,
+        "width": 2400,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        600,
+        -760
+      ],
+      "typeVersion": 1,
+      "id": "77de6d4d-cc27-48fe-b412-1236570e01cd",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "=CSV_Data",
+        "options": {
+          "headerRow": true,
+          "readAsString": false
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1160,
+        -620
+      ],
+      "id": "ab306011-35ff-4ecb-a56a-02f266299877",
+      "name": "Extract CSV"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "output",
+        "binaryPropertyName": "Revised_Code",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        2480,
+        -640
+      ],
+      "id": "836cd1fe-d418-4148-b4bb-d5b784d80fa9",
+      "name": "Convert to Code File"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "binaryPropertyName": "Original_Code",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1840,
+        -620
+      ],
+      "id": "aeb06fde-8d66-463b-9fb9-d2f557532935",
+      "name": "Extract Code File with Issues"
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{$json[\"file_Location\"]}}",
+        "options": {
+          "mimeType": "text",
+          "dataPropertyName": "Original_Code"
+        }
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        -620
+      ],
+      "id": "3f38ae8f-dc57-4a63-860e-9f71611bafab",
+      "name": "Read Code File",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Save to Output (Revised) Location').item.json.output_location }}",
+        "dataPropertyName": "Revised_Code",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        2840,
+        -640
+      ],
+      "id": "87d9b6a8-bd8f-44e2-8ed4-6ab496106392",
+      "name": "Write Fixed Codes",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "command": "=python \"C:\\Users\\RTEMSOFT\\Desktop\\Moein\\AI_Agent\\Create.sub.folders.py\" \"{{ $json.chatInput }}\"\n"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        640,
+        -620
+      ],
+      "id": "43406807-4ec4-4bf3-b446-93700d52ea1b",
+      "name": "Create Sub Folders and Test Folders"
+    },
+    {
+      "parameters": {
+        "jsCode": "const outputLocation = $('Loop to Revised Files with Issues').item.json.output_location;\n\nif (!outputLocation) {\n  throw new Error('Missing \"output_location\"');\n}\n\nconst dir = outputLocation.replace(/[\\\\\\/][^\\\\\\/]+$/, '');\nconst fileName = outputLocation.split(/[/\\\\]/).pop();\n\nreturn {\n  json: {\n    directory: dir,\n    fileName: fileName,\n    output_location: outputLocation\n  },\n  binary: {\n    Revised_Code: $input.first().binary.Revised_Code\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2660,
+        -640
+      ],
+      "id": "35c35d8e-09e2-4e9b-a914-a384a09b25b5",
+      "name": "Save to Output (Revised) Location"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Please review and fix the following code issues based on the information provided below. Return **only the corrected version of the full code**, with:\n\n* No additional explanations or commentary.\n* All original code lines preserved unless modified to resolve the issue.\n* Corrections made using the appropriate programming language syntax (JavaScript/JSX, YAML, or JavaScript test syntax).\n* All similar issues in the same file corrected consistently.\n\n---\n\n**File Information**\n\n* **Location:** `{{ $('Add Output Location').item.json.file_Location }}`\n* **File Name:** `{{ $('Add Output Location').item.json.file_name }}`\n\n---\n\n**Original Code:**\n\n```\n{{ $('Extract Code File with Issues').item.json.data }}\n```\n\n---\n\n**Detected Issues:**\n\n{{ $('Add Output Location').item.json.issueSummary }}\n\n---\n\n**Instructions:**\n\n* Fix each listed issue, following the structure and formatting of the original file.\n* Apply the fix not just to the mentioned lines, but also to any identical issues elsewhere in the file.\n* Use SonarQube recommendations as the basis for resolution.\n* Return the full corrected code **only** — no additional output (e.g., file info, comments, or summaries).\n\n---\n\n### ✨ Examples\n\n**Example 1 – Accessibility Issue (JSX):**\n**Before:**\n\n```jsx\n<div onClick={handleClick}>...</div>\n```\n\n**After:**\n\n```jsx\n<div onClick={handleClick} onKeyDown={handleKeyDown} tabIndex=\"0\">...</div>\n```\n\n---\n\n**Example 2 – Security Vulnerability (YAML):**\n**Before:**\n\n```yaml\nautomountServiceAccountToken: true\n```\n\n**After:**\n\n```yaml\nautomountServiceAccountToken: false\n```\n\n---\n\n**Example 3 – Code Smell (JavaScript test file):**\n**Before:**\n\n```javascript\n// TODO: Add end-to-end tests\n```\n\n**After:**\n\n> *(Code is removed)*\n\n---\n\nReminder: Return only the corrected code, formatted exactly like the original. Do not include any descriptions, file names, extra content, or code block markers (e.g., ``` or file type identifiers). Provide only the revised code — nothing else.",
+        "options": {
+          "systemMessage": "=You are a software developer.\n\nBelow is the project directory structure along with the contents of each file. Use this to gain a clear understanding of the project's layout and the location of each file.\n\n{{ $('Original Project Tree Extractor').first().json.stdout }}\n\n\nReminder: Return only the corrected code, formatted exactly like the original. Do not include any descriptions, file names, extra content, or code block markers (e.g., ``` or file type identifiers). Provide only the revised code — nothing else."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        2020,
+        -740
+      ],
+      "id": "0aae861d-cea2-42df-a669-3f27b5373c5d",
+      "name": "Code Issue Revisor Agent"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1500,
+        -620
+      ],
+      "id": "aab04ebb-5563-43be-94c0-19c6f86fe601",
+      "name": "Loop to Revised Files with Issues"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputItems = $input.all();\n\nconst grouped = {};\n\nfor (const item of inputItems) {\n  const { file_Location, file_name, line, message, type, output_location } = item.json;\n  const key = `${file_Location}||${file_name}`;\n\n  if (!grouped[key]) {\n    grouped[key] = {\n      file_Location,\n      file_name,\n      output_location, // Include output_location\n      issues: []\n    };\n  }\n\n  grouped[key].issues.push({ line, message, type });\n}\n\nconst result = [];\n\nfor (const key in grouped) {\n  const { file_Location, file_name, output_location, issues } = grouped[key];\n\n  // Generate issue description text\n  const issueDescriptions = issues\n    .map((issue, index) => {\n      return `Issue ${index + 1}: The detected \"${issue.type}\" issue by SonarQube is on line: ${issue.line}. Description of how to solve this code issue: \"${issue.message}\".`;\n    })\n    .join(\"\\n\");\n\n  result.push({\n    json: {\n      file_Location,\n      file_name,\n      output_location, // Include output_location in output\n      issueSummary: issueDescriptions,\n      totalIssues: issues.length\n    }\n  });\n}\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        -620
+      ],
+      "id": "9b6ecd39-ecc1-4734-bf46-26af053475f8",
+      "name": "Add Output Location"
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $('When chat message received').item.json.chatInput }}",
+        "options": {
+          "fileExtension": ".csv",
+          "fileName": "issues",
+          "mimeType": "csv",
+          "dataPropertyName": "CSV_Data"
+        }
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        -620
+      ],
+      "id": "585637b4-fa4d-4479-b195-38b0433881e0",
+      "name": "Read CSV for Revision",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "command": "=python \"C:\\Users\\RTEMSOFT\\Desktop\\Moein\\AI_Agent\\Codetree.py \" \"{{ $('When chat message received').first().json.chatInput }}\n\"\n"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        820,
+        -620
+      ],
+      "id": "a9291659-06d4-4904-bb9b-726c42091f60",
+      "name": "Original Project Tree Extractor"
+    },
+    {
+      "parameters": {
+        "model": "deepseek-coder-v2:16b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        2020,
+        -580
+      ],
+      "id": "ef479bf1-1300-401d-a0a1-56aea6df3549",
+      "name": "Code Issue Revisor",
+      "credentials": {
+        "ollamaApi": {
+          "id": "DMLEO8iwb8FGxnIA",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the raw model output\nconst rawOutput = $input.first().json.output || \"\";\n\n// Normalize backticks and language prefix\nlet cleaned = rawOutput\n    .trim()\n    .replace(/^```[a-z]*\\s*/i, \"\")   // Remove opening ```python (or similar) + optional whitespace\n    .replace(/```$/, \"\")             // Remove closing ```\n\n// Decode escaped characters like \\n, \\t, etc.\ncleaned = cleaned.replace(/\\\\n/g, '\\n')\n                 .replace(/\\\\t/g, '\\t')\n                 .replace(/\\\\r/g, '\\r');\n\n// Remove accidental extra indentation caused by encoding\ncleaned = cleaned.replace(/^\\s*\\n/, \"\").replace(/\\n\\s*$/, \"\");\n\n// Return the cleaned code\nreturn {\n  output: cleaned\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2340,
+        -640
+      ],
+      "id": "593b68e7-81c6-422f-bce8-88d7692c889c",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "content": "Test Case Generation based on Revised Files",
+        "height": 320,
+        "width": 2940,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        420,
+        -20
+      ],
+      "typeVersion": 1,
+      "id": "f9704555-97f6-4513-bea1-23bb641e8795",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Save to Test Location').item.json.test_location }}",
+        "dataPropertyName": "Test_Case",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        3200,
+        100
+      ],
+      "id": "a8787a6b-59e4-47dd-828d-71639c1ac763",
+      "name": "Write Test Cases",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "=output",
+        "binaryPropertyName": "Test_Case",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        2880,
+        100
+      ],
+      "id": "fd27749d-78fb-4e7a-9192-18fc23e54258",
+      "name": "Convert to Test File"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1000,
+        100
+      ],
+      "id": "6da168b5-6f6d-4627-8045-8819589719a8",
+      "name": "Loop to Create Test Cases"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputItems = $input.all();\n\nconst grouped = {};\n\nfor (const item of inputItems) {\n  const normalized = {};\n  for (const key in item.json) {\n    normalized[key.toLowerCase()] = item.json[key];\n  }\n\n  const {\n    file_location,\n    file_name,\n    line,\n    message,\n    type,\n    output_location,\n    test_location,\n    test_file_name\n  } = normalized;\n\n  const key = `${file_location}||${file_name}`;\n\n  if (!grouped[key]) {\n    grouped[key] = {\n      file_Location: file_location,\n      file_name,\n      output_location,\n      test_location,\n      test_file_name,\n      issues: []\n    };\n  }\n\n  grouped[key].issues.push({ line, message, type });\n}\n\nconst result = [];\n\nfor (const key in grouped) {\n  const {\n    file_Location,\n    file_name,\n    output_location,\n    test_location,\n    test_file_name,\n    issues\n  } = grouped[key];\n\n  const issueDescriptions = issues\n    .map((issue, index) => {\n      return `Issue ${index + 1}: The detected \"${issue.type}\" issue by SonarQube is on line: ${issue.line}. Description of how to solve this code issue: \"${issue.message}\".`;\n    })\n    .join(\"\\n\");\n\n  result.push({\n    json: {\n      file_Location,\n      file_name,\n      output_location,\n      test_location: test_location || \"\",\n      test_file_name: test_file_name || \"\",\n      issueSummary: issueDescriptions,\n      totalIssues: issues.length\n    }\n  });\n}\n\nreturn result;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        820,
+        100
+      ],
+      "id": "b8a7c1ae-8533-434d-af17-96d9dd4d2f89",
+      "name": "Add Output (Test) Location"
+    },
+    {
+      "parameters": {
+        "jsCode": "const testLocation = $('Loop to Create Test Cases').item.json.test_location;\n\nif (!testLocation) {\n  throw new Error('Missing \"test_location\"');\n}\n\nconst dir = testLocation.replace(/[\\\\\\/][^\\\\\\/]+$/, '');\nconst fileName = testLocation.split(/[/\\\\]/).pop();\n\nreturn {\n  json: {\n    directory: dir,\n    fileName: fileName,\n    test_location: testLocation\n  },\n  binary: {\n    Test_Case: $input.first().binary.Test_Case\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3040,
+        100
+      ],
+      "id": "34ddfd81-8e37-4686-89f2-6464be45435e",
+      "name": "Save to Test Location"
+    },
+    {
+      "parameters": {
+        "model": "deepseek-coder-v2:16b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        1820,
+        160
+      ],
+      "id": "f8567528-bdb7-4660-a9c9-659340e9db4e",
+      "name": "Code Issue Revisor6",
+      "credentials": {
+        "ollamaApi": {
+          "id": "DMLEO8iwb8FGxnIA",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "codellama:13b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        2100,
+        160
+      ],
+      "id": "0fb56c0d-9bea-4ba7-bf3c-cdcc40b45858",
+      "name": "Code Issue Revisor7",
+      "credentials": {
+        "ollamaApi": {
+          "id": "DMLEO8iwb8FGxnIA",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "qwen2.5-coder:14b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        2420,
+        160
+      ],
+      "id": "915e86aa-b86f-4c0b-a136-e52450e1abce",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "DMLEO8iwb8FGxnIA",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "deepseek-coder-v2:16b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        160
+      ],
+      "id": "f64b6c61-bb5a-447f-b6a5-88b010efa793",
+      "name": "Ollama Chat Model5",
+      "credentials": {
+        "ollamaApi": {
+          "id": "DMLEO8iwb8FGxnIA",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Remove leading and trailing triple backticks and optional language tag\nconst rawOutput = $input.first().json.output // or the actual path to model output\n\nconst cleaned_code = rawOutput\n    .replace(/^```[a-z]*\\n/i, \"\")  // Remove opening ```python or similar\n    .replace(/\\n```$/, \"\");        // Remove closing ```\n\nreturn { output: cleaned_code };\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2740,
+        100
+      ],
+      "id": "05261b34-aa74-49ed-9a43-08ff6e852fe3",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $('When chat message received').first().json.chatInput }}",
+        "options": {
+          "fileExtension": ".csv",
+          "fileName": "issues",
+          "mimeType": "csv",
+          "dataPropertyName": "CSV_data"
+        }
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        480,
+        100
+      ],
+      "id": "9c69356b-04e2-4f2e-a9c9-038fc5982497",
+      "name": "Read CSV for Test Cases (Revised)"
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "=CSV_data",
+        "options": {
+          "headerRow": true,
+          "readAsString": false
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        660,
+        100
+      ],
+      "id": "477af0fb-378f-404a-878d-d96667ef33d4",
+      "name": "Extract CSV for Test Cases (Revised)"
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{$json[\"file_Location\"]}}",
+        "options": {
+          "mimeType": "text",
+          "dataPropertyName": "Original_Code"
+        }
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1180,
+        100
+      ],
+      "id": "6af55f0b-467e-4987-ac7e-6142b807002a",
+      "name": "Read Revised Files",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "binaryPropertyName": "Original_Code",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        100
+      ],
+      "id": "b416d724-faac-4751-b7b0-6d850f30d725",
+      "name": "Extract Revised Files"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=For each of the following functions or classes, generate a set of **unit test scenarios**. Ensure the tests include:\n\n* ✅ Normal input cases\n* 🚨 Edge cases (e.g., empty, null, extreme values)\n* ❌ Invalid inputs (e.g., wrong types, missing arguments)\n\nFor each test case, briefly describe what it is verifying.\n\n---\n\n**Base Code (for reference):**\n\n{{ $('Extract Original Files1').item.json.data }}\n\n---\n\n**Extracted Function/Class Definitions:**\n\n{{ $json.output }}\n",
+        "options": {
+          "systemMessage": "You are a test planning assistant. Based on the extracted function/class definitions, your job is to reason through appropriate test scenarios.\n\nFor each function/class:\n\n1. Describe its expected behavior in simple terms.\n2. List possible test scenarios — including normal cases, edge cases, and invalid inputs.\n3. Focus on input combinations and expected outputs, but do **not** write code yet.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        2080,
+        -360
+      ],
+      "id": "8c025877-4325-412d-88e2-20607da08556",
+      "name": "Original Planner AI Agnet"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Extract all top-level functions and classes from this code.\nFor each, include:\n\n* Name\n* Arguments\n* Docstring (if any)\n\n**Code Input:**\n{{ $('Extract Original Files1').item.json.data }}",
+        "options": {
+          "systemMessage": "=You are a code structure parser. Your job is to extract all top-level functions and classes from a given code snippet.\n\nFor each item you find, provide:\n\n1. **Name** of the function or class.\n2. **Arguments** (including default values if present).\n3. **Docstring** (if available).\n\nReturn a structured list. Do not interpret functionality or rewrite code. Only extract and report the structure exactly as it appears.\n\n{{ $json.output }}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        1780,
+        -360
+      ],
+      "id": "c9831d95-c95e-4afb-9477-a825b5b902d7",
+      "name": "Original  Blueprint AI Agnet"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=What does this code do? What language is it written in? List the major components like functions, classes, or key logic blocks.\n\n**Original Code:**\n\n{{ $json.data }}",
+        "options": {
+          "systemMessage": "You are a code analysis assistant. Your job is to help identify the purpose and structure of a code snippet.\n\nGiven any source code, you must:\n\n1. **Determine the programming language.**\n2. **Summarize what the code does overall.**\n3. **List the major components or functions, classes, and important patterns.**\n\nBe precise, concise, and avoid assumptions. Do not generate any code or tests—just analyze and describe what is present in the input."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1480,
+        -360
+      ],
+      "id": "c18c176d-4a46-4510-ae37-5c8e980b563c",
+      "name": "Original Inspector AI Agnet"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=generate a unit test cases for each of the following functions or classes in the given code file. Use the appropriate testing framework and syntax based on the detected programming language in the code.\n\nEach test case should:\n\n* Validate correct behavior for typical inputs.\n* Handle edge cases and invalid inputs.\n* Verify that expected errors are raised or logged when applicable.\n* Include descriptive names and minimal but sufficient context (e.g. mocking, setup).\n\n---\n\n### File Information\n\n* **Location:** {{ $('Add Output (Test) Location1').item.json.file_Location }}\n* **File Name:** {{ $('Add Output (Test) Location1').item.json.file_name }}\n\n### Base Code (for reference)\n\n{{ $('Extract Original Files1').item.json.data }}\n\n\n### Function List with Expected Functionalities\n\n{{ $json.output }}",
+        "options": {
+          "systemMessage": "You are a unit test generator capable of working with multiple programming languages.\n\nGiven a list of function or class definitions (including names, arguments, and docstrings), your task is to generate **unit test code** in the appropriate language using a standard testing framework.\n\nSupported languages and frameworks:\n\n* **Python** → `unittest` or `pytest`\n* **JavaScript** → `Jest`\n* **TypeScript** → `Jest` or `Mocha`\n* **Java** → `JUnit`\n* **C#** → `NUnit` or `xUnit`\n* **Go** → Go’s built-in `testing` package\n* **Other languages** → Use the most common test framework\n\nYour responsibilities:\n\n1. Detect the correct programming language from the code context.\n2. Generate complete, runnable unit test code for each function or class.\n3. Include tests for:\n\n   * Normal cases\n   * Edge cases (e.g. empty values, boundary conditions)\n   * Invalid inputs (e.g. wrong types, missing arguments)\n4. Validate return values, raised exceptions, or behavioral correctness.\n5. Include all necessary imports, setup code, and test structure.\n\n---\n\n### 🔒 Important Instruction:\n\n**Only output the final unit test code in the correct language.**\nDo **not** include explanations, summaries, or descriptions — test code only."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        2380,
+        -360
+      ],
+      "id": "475426d5-60c6-4b2f-bbe8-80d7538170e9",
+      "name": "Original Builder AI Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=What does this code do? What language is it written in? List the major components like functions, classes, or key logic blocks.\n\n**Original Code:**\n\n{{ $json.data }}",
+        "options": {
+          "systemMessage": "You are a code analysis assistant. Your job is to help identify the purpose and structure of a code snippet.\n\nGiven any source code, you must:\n\n1. **Determine the programming language.**\n2. **Summarize what the code does overall.**\n3. **List the major components or functions, classes, and important patterns.**\n\nBe precise, concise, and avoid assumptions. Do not generate any code or tests—just analyze and describe what is present in the input."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1500,
+        20
+      ],
+      "id": "6cae1b65-c475-49ae-a411-090e59f008e9",
+      "name": "Revised Inspector AI Agnet"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Extract all top-level functions and classes from this code.\nFor each, include:\n\n* Name\n* Arguments\n* Docstring (if any)\n\n**Code Input:**\n{{ $('Extract Revised Files').item.json.data }}",
+        "options": {
+          "systemMessage": "=You are a code structure parser. Your job is to extract all top-level functions and classes from a given code snippet.\n\nFor each item you find, provide:\n\n1. **Name** of the function or class.\n2. **Arguments** (including default values if present).\n3. **Docstring** (if available).\n\nReturn a structured list. Do not interpret functionality or rewrite code. Only extract and report the structure exactly as it appears.\n\n{{ $json.output }}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        1800,
+        20
+      ],
+      "id": "8b34ed67-eb60-4972-9059-e62a75c65692",
+      "name": "Revised Blueprint AI Agnet"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=For each of the following functions or classes, generate a set of **unit test scenarios**. Ensure the tests include:\n\n* ✅ Normal input cases\n* 🚨 Edge cases (e.g., empty, null, extreme values)\n* ❌ Invalid inputs (e.g., wrong types, missing arguments)\n\nFor each test case, briefly describe what it is verifying.\n\n---\n\n**Base Code (for reference):**\n\n{{ $('Extract Revised Files').item.json.data }}\n\n---\n\n**Extracted Function/Class Definitions:**\n\n{{ $json.output }}\n",
+        "options": {
+          "systemMessage": "You are a test planning assistant. Based on the extracted function/class definitions, your job is to reason through appropriate test scenarios.\n\nFor each function/class:\n\n1. Describe its expected behavior in simple terms.\n2. List possible test scenarios — including normal cases, edge cases, and invalid inputs.\n3. Focus on input combinations and expected outputs, but do **not** write code yet.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        2100,
+        20
+      ],
+      "id": "7351d9a0-8ade-4e45-a267-ab528ab6dbaf",
+      "name": "Revised Planner AI Agnet"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=generate a unit test cases for each of the following functions or classes in the given code file. Use the appropriate testing framework and syntax based on the detected programming language in the code.\n\nEach test case should:\n\n* Validate correct behavior for typical inputs.\n* Handle edge cases and invalid inputs.\n* Verify that expected errors are raised or logged when applicable.\n* Include descriptive names and minimal but sufficient context (e.g. mocking, setup).\n\n---\n\n### File Information\n\n* **Location:** {{ $('Add Output (Test) Location').item.json.file_Location }}\n* **File Name:** {{ $('Add Output (Test) Location').item.json.file_name }}\n\n### Base Code (for reference)\n\n{{ $('Extract Revised Files').item.json.data }}\n\n\n### Function List with Expected Functionalities\n\n{{ $json.output }}",
+        "options": {
+          "systemMessage": "You are a unit test generator capable of working with multiple programming languages.\n\nGiven a list of function or class definitions (including names, arguments, and docstrings), your task is to generate **unit test code** in the appropriate language using a standard testing framework.\n\nSupported languages and frameworks:\n\n* **Python** → `unittest` or `pytest`\n* **JavaScript** → `Jest`\n* **TypeScript** → `Jest` or `Mocha`\n* **Java** → `JUnit`\n* **C#** → `NUnit` or `xUnit`\n* **Go** → Go’s built-in `testing` package\n* **Other languages** → Use the most common test framework\n\nYour responsibilities:\n\n1. Detect the correct programming language from the code context.\n2. Generate complete, runnable unit test code for each function or class.\n3. Include tests for:\n\n   * Normal cases\n   * Edge cases (e.g. empty values, boundary conditions)\n   * Invalid inputs (e.g. wrong types, missing arguments)\n4. Validate return values, raised exceptions, or behavioral correctness.\n5. Include all necessary imports, setup code, and test structure.\n\n---\n\n### 🔒 Important Instruction:\n\n**Only output the final unit test code in the correct language.**\nDo **not** include explanations, summaries, or descriptions — test code only."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        2400,
+        20
+      ],
+      "id": "4f730392-5602-4529-a40e-a8b1c3b8674e",
+      "name": "Revised Builder AI Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You will classify SonarQube findings to remove false positives.\n\nInput issues (array of objects) follow. Preserve order. Each object may include:\nfile_Location, file_name, line, type, message, output_location, and any extra fields.\n\nINPUT_ISSUES_JSON:\n{{ $json[\"issuesBatch\"] }}\n\nFor each input object, return:\n\n[\n  {\n    \"index\": <0-based index matching input order>,\n    \"validated\": true | false,   // true = keep for downstream code revision; false = drop as false positive\n    \"reason\": \"brief explanation (<=200 chars)\"\n  },\n  ...\n]\n\nRules:\n- Mark false when clearly tool noise, irrelevant, config-exempt, or intentional pattern.\n- If unsure, mark validated = true.\n- Do NOT change indexes.\n- Return JSON ONLY.\n",
+        "options": {
+          "systemMessage": "You are an AI software quality assistant operating inside an n8n workflow. You receive static analysis findings exported from SonarQube as CSV rows (one issue per row). Each row includes:\n\nfile_Location (path to the source file),\n\nfile_name (basename of the file),\n\nline (line number Sonar flagged),\n\ntype (issue category/rule type),\n\nmessage (Sonar’s explanatory text / remediation guidance),\n\noutput_location (where revised code should be written downstream).\n\nYour task: determine whether each reported issue is a true issue that should proceed to automated code revision and test generation, or a false positive that should be removed.\nTreat an issue as a false positive if any of the following clearly applies: tool misfire, incorrect line mapping, rule not applicable to the project’s language/framework, intentionally acceptable pattern (generated code, test scaffolding, dead sample code, commented-out code where warning is irrelevant), duplicate/derivative of another issue that will be fixed once at a higher level, or project configuration explicitly suppresses that rule. When uncertain, err on the side of validated = true (keep).\n\nOutput must be strict, valid JSON only (no prose before or after). Do not rewrite code, suggest fixes, or merge issues here—you are only classifying. Keep reasons short (≤200 characters)."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1460,
+        -1100
+      ],
+      "id": "255df870-5583-4e4a-be5a-a482a28c5ffa",
+      "name": "False Mitigator AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1420,
+        -940
+      ],
+      "id": "42b35166-44ee-47a8-bf12-74f417a35803",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "0C3qEwzQ9hsC34lu",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1940,
+        -900
+      ],
+      "id": "823072b7-c821-4db4-8c2d-828133f85da5",
+      "name": "Google Search"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1840,
+        -900
+      ],
+      "id": "2f48a892-c462-47d4-8645-4c7306efe93a",
+      "name": "Github"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1740,
+        -900
+      ],
+      "id": "4aac0d1f-7689-494a-a2ba-85e3d9c234d6",
+      "name": "StackOverflow"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.github.com/search/code?q={{$json.query}}+in:file+language:java",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "=Authorization: Bearer {{GITHUB_TOKEN}}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1660,
+        -900
+      ],
+      "id": "2065db32-da3a-4479-997a-cd2ce7ca5b46",
+      "name": "Sonar Commuinty"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1560,
+        -940
+      ],
+      "id": "2f95ef75-2405-4c47-bc07-561808f89135",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "=CSV_Data",
+        "options": {
+          "headerRow": true,
+          "readAsString": false
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        900,
+        -1100
+      ],
+      "id": "32052f63-1fa2-4086-b3cf-eb47270f933e",
+      "name": "Extract CSV1"
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $('When chat message received').item.json.chatInput }}",
+        "options": {
+          "fileExtension": ".csv",
+          "fileName": "issues",
+          "mimeType": "csv",
+          "dataPropertyName": "CSV_Data"
+        }
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        720,
+        -1100
+      ],
+      "id": "3bf9f1d7-2d33-42ad-b89a-416e2571f88d",
+      "name": "Read CSV for Revision1",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const buckets = {};\n\nfor (const item of items) {\n  const row = item.json;\n  const { file_name } = row;\n  if (!file_name) continue; // skip rows missing file_name\n  if (!buckets[file_name]) buckets[file_name] = [];\n  buckets[file_name].push(row);\n}\n\nreturn Object.entries(buckets).map(([file_name, rows]) => ({\n  json: {\n    file_name,\n    rows,          // all CSV rows that shared this file_name\n    count: rows.length\n  }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1060,
+        -1100
+      ],
+      "id": "15f4c129-f8b9-4369-8539-232a408290ef",
+      "name": "Group"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1240,
+        -1100
+      ],
+      "id": "763811a7-82d1-4bf9-9891-6198926efe72",
+      "name": "Loop to Revised Files with Issues1"
+    },
+    {
+      "parameters": {
+        "command": "=python \"C:\\Users\\RTEMSOFT\\Desktop\\Moein\\AI_Agent\\Create.sub.folders.py\" \"{{ $json.chatInput }}\"\n"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1800,
+        -1100
+      ],
+      "id": "8d600b9a-91e5-4e46-a80f-3ac0276723f2",
+      "name": "Create Sub Folders and Test Folders1"
+    },
+    {
+      "parameters": {
+        "content": "Flase Positive Mitigation\n",
+        "height": 360,
+        "width": 1460,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        620,
+        -1140
+      ],
+      "typeVersion": 1,
+      "id": "0a3ecc0b-2873-4e20-b0df-4acac5dc79c7",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.googleapis.com/customsearch/v1?q={{ $json.query }}&cx=YOUR_CSE_ID&key=YOUR_GOOGLE_API_KEY",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        120,
+        -360
+      ],
+      "id": "0216d838-1a2b-4dfa-8a03-3ecb28fbc58f",
+      "name": "Google Search1"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.github.com/search/code?q={{ $json.query }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        140,
+        -240
+      ],
+      "id": "c5974013-d42e-4c50-b83d-26fcbbfa58f0",
+      "name": "Github1"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.stackexchange.com/2.3/search/advanced?order=desc&sort=relevance&q={{ $json.query }}&site=stackoverflow",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -40,
+        -360
+      ],
+      "id": "b4639697-14a3-4f6a-801d-dbda67c83fda",
+      "name": "StackOverflow1"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.github.com/search/code?q={{$json.query}}+in:file+language:java",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "=Authorization: Bearer {{GITHUB_TOKEN}}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -40,
+        -220
+      ],
+      "id": "960aa250-4993-4b08-9e31-752854f54d7d",
+      "name": "Sonar Commuinty1"
+    },
+    {
+      "parameters": {
+        "content": "RAG tools",
+        "height": 360,
+        "width": 500,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -160,
+        -420
+      ],
+      "typeVersion": 1,
+      "id": "b6348c69-feda-406e-a25c-7a637fb8aaf4",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Read CSV for Revision1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Test Cases1": {
+      "main": [
+        [
+          {
+            "node": "Loop to Create Test Cases1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to Test File1": {
+      "main": [
+        [
+          {
+            "node": "Save to Test Location1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Original Files1": {
+      "main": [
+        [
+          {
+            "node": "Original Inspector AI Agnet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Original Files1": {
+      "main": [
+        [
+          {
+            "node": "Extract Original Files1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop to Create Test Cases1": {
+      "main": [
+        [
+          {
+            "node": "Read CSV for Test Cases (Revised)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read Original Files1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Output (Test) Location1": {
+      "main": [
+        [
+          {
+            "node": "Loop to Create Test Cases1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read CSV for Test Cases (Original)1": {
+      "main": [
+        [
+          {
+            "node": "Extract CSV for Test Cases (Original)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract CSV for Test Cases (Original)1": {
+      "main": [
+        [
+          {
+            "node": "Add Output (Test) Location1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Test Location1": {
+      "main": [
+        [
+          {
+            "node": "Write Test Cases1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Issue Revisor4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Original  Blueprint AI Agnet",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Issue Revisor5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Original Planner AI Agnet",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Original Builder AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Original Inspector AI Agnet",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Convert to Test File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract CSV": {
+      "main": [
+        [
+          {
+            "node": "Add Output Location",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to Code File": {
+      "main": [
+        [
+          {
+            "node": "Save to Output (Revised) Location",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Code File with Issues": {
+      "main": [
+        [
+          {
+            "node": "Code Issue Revisor Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Code File": {
+      "main": [
+        [
+          {
+            "node": "Extract Code File with Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Fixed Codes": {
+      "main": [
+        [
+          {
+            "node": "Loop to Revised Files with Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Sub Folders and Test Folders": {
+      "main": [
+        [
+          {
+            "node": "Original Project Tree Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Output (Revised) Location": {
+      "main": [
+        [
+          {
+            "node": "Write Fixed Codes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Issue Revisor Agent": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop to Revised Files with Issues": {
+      "main": [
+        [
+          {
+            "node": "Read CSV for Test Cases (Original)1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read Code File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Output Location": {
+      "main": [
+        [
+          {
+            "node": "Loop to Revised Files with Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read CSV for Revision": {
+      "main": [
+        [
+          {
+            "node": "Extract CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Original Project Tree Extractor": {
+      "main": [
+        [
+          {
+            "node": "Read CSV for Revision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Issue Revisor": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Code Issue Revisor Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Convert to Code File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Test Cases": {
+      "main": [
+        [
+          {
+            "node": "Loop to Create Test Cases",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to Test File": {
+      "main": [
+        [
+          {
+            "node": "Save to Test Location",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop to Create Test Cases": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Read Revised Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Output (Test) Location": {
+      "main": [
+        [
+          {
+            "node": "Loop to Create Test Cases",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Test Location": {
+      "main": [
+        [
+          {
+            "node": "Write Test Cases",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Issue Revisor6": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Revised Blueprint AI Agnet",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Issue Revisor7": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Revised Planner AI Agnet",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Revised Builder AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Revised Inspector AI Agnet",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Convert to Test File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read CSV for Test Cases (Revised)": {
+      "main": [
+        [
+          {
+            "node": "Extract CSV for Test Cases (Revised)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract CSV for Test Cases (Revised)": {
+      "main": [
+        [
+          {
+            "node": "Add Output (Test) Location",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Revised Files": {
+      "main": [
+        [
+          {
+            "node": "Extract Revised Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Revised Files": {
+      "main": [
+        [
+          {
+            "node": "Revised Inspector AI Agnet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Original Planner AI Agnet": {
+      "main": [
+        [
+          {
+            "node": "Original Builder AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Original  Blueprint AI Agnet": {
+      "main": [
+        [
+          {
+            "node": "Original Planner AI Agnet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Original Inspector AI Agnet": {
+      "main": [
+        [
+          {
+            "node": "Original  Blueprint AI Agnet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Original Builder AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Revised Inspector AI Agnet": {
+      "main": [
+        [
+          {
+            "node": "Revised Blueprint AI Agnet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Revised Blueprint AI Agnet": {
+      "main": [
+        [
+          {
+            "node": "Revised Planner AI Agnet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Revised Planner AI Agnet": {
+      "main": [
+        [
+          {
+            "node": "Revised Builder AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Revised Builder AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "False Mitigator AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Search": {
+      "ai_tool": [
+        [
+          {
+            "node": "False Mitigator AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Github": {
+      "ai_tool": [
+        [
+          {
+            "node": "False Mitigator AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "StackOverflow": {
+      "ai_tool": [
+        [
+          {
+            "node": "False Mitigator AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sonar Commuinty": {
+      "ai_tool": [
+        [
+          {
+            "node": "False Mitigator AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "False Mitigator AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read CSV for Revision1": {
+      "main": [
+        [
+          {
+            "node": "Extract CSV1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract CSV1": {
+      "main": [
+        [
+          {
+            "node": "Group",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Group": {
+      "main": [
+        [
+          {
+            "node": "Loop to Revised Files with Issues1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop to Revised Files with Issues1": {
+      "main": [
+        [
+          {
+            "node": "Create Sub Folders and Test Folders",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "False Mitigator AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "False Mitigator AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Create Sub Folders and Test Folders1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Sub Folders and Test Folders1": {
+      "main": [
+        [
+          {
+            "node": "Loop to Revised Files with Issues1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "StackOverflow1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Code Issue Revisor Agent",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Original Inspector AI Agnet",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Original  Blueprint AI Agnet",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Original Planner AI Agnet",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Original Builder AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Revised Inspector AI Agnet",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Revised Blueprint AI Agnet",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Revised Builder AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sonar Commuinty1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Code Issue Revisor Agent",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Original Inspector AI Agnet",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Original  Blueprint AI Agnet",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Revised Inspector AI Agnet",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Revised Planner AI Agnet",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Revised Blueprint AI Agnet",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Revised Builder AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Search1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Code Issue Revisor Agent",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Original Inspector AI Agnet",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Original  Blueprint AI Agnet",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Original Planner AI Agnet",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Revised Inspector AI Agnet",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Revised Planner AI Agnet",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Revised Blueprint AI Agnet",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Revised Builder AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Github1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Code Issue Revisor Agent",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Original Inspector AI Agnet",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Original  Blueprint AI Agnet",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Original Builder AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Revised Inspector AI Agnet",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Revised Planner AI Agnet",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Revised Blueprint AI Agnet",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Revised Builder AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5c8502fa-5c47-4733-9514-e5b7a9fe4e69",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9c7cae56917fbb061c039a5951bbf926887f62eb79043ead3c57ccba0d2083a3"
+  },
+  "id": "atVzQyaeYsZeC9wa",
+  "tags": []
+}
