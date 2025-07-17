@@ -208,6 +208,11 @@ Simply trigger the workflow with your CSV file location. The workflow automatica
 # 3. Wait for completion (processing time depends on project size)
 # 4. Check outputs in configured directories
 ```
+
+![Screenshot_17-7-2025_12820_localhost](https://github.com/user-attachments/assets/c7506f18-5774-4b79-8e98-071408843e9e)
+
+![Screenshot_17-7-2025_114935_localhost](https://github.com/user-attachments/assets/8eefbce9-f3e1-4dbe-ac54-7978b2d592b5)
+
 ## 📁 Project Structure
 
 ```
@@ -222,7 +227,6 @@ NGQA/
 ## 🔧 Configuration
 
 ### Model Configuration
-Edit `configs/model_configs.json` to customize LLM settings:
 
 ```json
 {
@@ -258,7 +262,6 @@ Edit `configs/model_configs.json` to customize LLM settings:
 ```
 
 ### Pipeline Settings
-Customize `configs/pipeline_settings.json`:
 
 ```json
 {
