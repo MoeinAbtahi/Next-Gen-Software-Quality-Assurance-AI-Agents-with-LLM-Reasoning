@@ -98,31 +98,65 @@ ollama pull qwen2.5-code:14b
 
 ### Quick Start
 
-1. **Prepare your codebase**:
+1. **Load the n8n Workflow**:
+```bash
+# Start n8n
+n8n start
+
+# Import the workflow in n8n web interface (http://localhost:5678)
+# Go to: Workflows → Import from File → Select "Next_Gen_Software_Quality_Assurance.json"
+```
+
+2. **Extract SonarQube Issues**:
 ```bash
 # Place your source code in the input directory
 mkdir input_projects
 cp -r /path/to/your/project input_projects/
-```
 
-2. **Run static analysis**:
-```bash
+# Run SonarQube analysis and extract issues
 python Extract_All_Issues.py --project-path input_projects/your_project
+# This generates: issues_report.csv
 ```
 
-3. **Execute the NGQA pipeline**:
+3. **Trigger the Complete Pipeline**:
 ```bash
-python Codetree.py --input-csv issues_report.csv --output-dir output_revised
+# In n8n workflow interface:
+# 1. Click "Execute Workflow" 
+# 2. Provide the CSV file location: /path/to/issues_report.csv
+# 3. The workflow automatically handles Steps 2-6
 ```
 
-4. **Generate test suites**:
-```bash
-python Create_sub_folders.py --project-path output_revised
-```
+**That's it!** The n8n workflow will automatically process your CSV file through all remaining pipeline stages.
 
-### Detailed Workflow
+### n8n Workflow - Complete Automation
 
-#### Step 1: Static Issue Detection
+The `Next_Gen_Software_Quality_Assurance.json` workflow contains all the automation for Steps 2-6:
+
+**🎯 Trigger Input**: CSV file location containing SonarQube issues  
+**🔄 Automated Processing**: All pipeline stages execute sequentially  
+**📊 Output**: Revised code, test suites, and evaluation reports  
+
+### Workflow Configuration
+
+1. **Import the workflow**:
+   - Open n8n web interface (http://localhost:5678)
+   - Navigate to **Workflows** → **Import from File**
+   - Select `Next_Gen_Software_Quality_Assurance.json`
+   - All nodes will be automatically configured
+
+2. **Configure your credentials**:
+   - Set up your LLM API keys (OpenAI, Anthropic, etc.)
+   - Configure Ollama endpoints for local models
+   - Set SonarQube connection details
+
+3. **Execute the workflow**:
+   - Click "Execute Workflow"
+   - Enter the path to your `issues_report.csv` file
+   - The workflow handles everything else automatically
+
+### Pipeline Execution
+
+#### Step 1: Static Issue Detection (Manual)
 ```bash
 # Configure SonarQube project
 sonar-scanner \
@@ -134,46 +168,46 @@ sonar-scanner \
 python Extract_All_Issues.py --project your_project --output issues_report.csv
 ```
 
-#### Step 2: False Positive Mitigation
-The n8n workflow automatically processes the CSV file through the false positive mitigation agent:
+#### Steps 2-6: Fully Automated via n8n Workflow
+Simply trigger the workflow with your CSV file location. The workflow automatically executes:
 
-```json
-{
-  "agent_config": {
-    "model": "gpt-4",
-    "temperature": 0.1,
-    "max_tokens": 1000,
-    "rag_enabled": true,
-    "knowledge_sources": ["stackoverflow", "github", "sonarqube_community"]
-  }
-}
-```
+**Step 2: False Positive Mitigation**
+- RAG-enhanced AI agent processes the CSV
+- Filters out incorrect static analysis results
+- Validates remaining issues for revision
 
-#### Step 3: LLM-Based Code Revision
-```bash
-# The revision agent processes each file individually
-python Codetree.py \
-  --input-csv filtered_issues.csv \
-  --model-config revision_config.json \
-  --output-dir output_revised
-```
+**Step 3: LLM-Based Code Revision**
+- Processes each validated issue
+- Generates revised code using external knowledge
+- Maintains code structure and functionality
 
-#### Step 4: Test Suite Generation with LCoT
-The Local Chain-of-Thought framework uses four sequential agents:
+**Step 4: Structural Analysis**
+- Maps project dependencies
+- Analyzes code relationships
+- Prepares context for test generation
 
-1. **Agent 1** (deepseek-code-v2:16b): Functional analysis
-2. **Agent 2** (deepseek-code-v2:16b): Component extraction
-3. **Agent 3** (codellama:13b): Test scenario generation
-4. **Agent 4** (qwen2.5-code:14b): Unit test creation
+**Step 5: Test Suite Generation**
+- Four LCoT agents work sequentially
+- Generates comprehensive test suites
+- Creates tests for both original and revised code
+
+**Step 6: Evaluation**
+- Calculates PassRatio, CodeBLEU, and CodeScore
+- Performs four-fold testing strategy
+- Generates detailed performance reports
+
+### Workflow Trigger Example
 
 ```bash
-# Generate test suites for both original and revised code
-python Create_sub_folders.py \
-  --original-code input_projects \
-  --revised-code output_revised \
-  --test-output tests_generated
-```
+# After running Extract_All_Issues.py, you get:
+# /home/user/ngqa/issues_report.csv
 
+# In n8n workflow interface:
+# 1. Click "Execute Workflow"
+# 2. Input: /home/user/ngqa/issues_report.csv
+# 3. Wait for completion (processing time depends on project size)
+# 4. Check outputs in configured directories
+```
 ## 📁 Project Structure
 
 ```
@@ -183,25 +217,6 @@ NGQA/
 ├── 📄 Extract_All_Issues.py          # SonarQube issue extraction
 ├── 📄 README.md                      # This file
 ├── 📄 Next_Gen_Software_Quality_Assurance.json  # n8n workflow configuration
-├── 📸 Screenshot_17-7-2025_114935_localhost.jpeg  # Pipeline visualization
-├── 📁 configs/                       # Configuration files
-│   ├── model_configs.json
-│   └── pipeline_settings.json
-├── 📁 agents/                        # AI agent implementations
-│   ├── false_positive_agent.py
-│   ├── revision_agent.py
-│   └── test_generation_agents.py
-├── 📁 utils/                         # Utility functions
-│   ├── code_parser.py
-│   ├── metrics_calculator.py
-│   └── project_mapper.py
-├── 📁 evaluation/                    # Evaluation scripts and metrics
-│   ├── calculate_metrics.py
-│   └── four_fold_testing.py
-└── 📁 examples/                      # Example projects and results
-    ├── javascript_example/
-    ├── python_example/
-    └── java_example/
 ```
 
 ## 🔧 Configuration
@@ -413,52 +428,6 @@ ollama pull deepseek-code-v2:16b --force
 python Codetree.py --input-csv issues.csv --batch-size 50 --parallel-workers 2
 ```
 
-## 🤝 Contributing
-
-We welcome contributions to the NGQA project! Please follow these guidelines:
-
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/new-feature`
-3. **Make your changes** and add tests
-4. **Run the test suite**: `pytest tests/`
-5. **Submit a pull request**
-
-### Development Setup
-
-```bash
-# Install development dependencies
-pip install -r requirements-dev.txt
-
-# Run tests
-pytest tests/ -v
-
-# Run linting
-flake8 src/
-black src/
-
-# Run type checking
-mypy src/
-```
-
-## 📚 Research Paper
-
-This implementation is based on our research paper:
-
-**"NGQA: Next-Gen Software Quality Assurance using AI Agents and LLM Reasoning"**
-
-### Citation
-
-```bibtex
-@article{ngqa2024,
-  title={NGQA: Next-Gen Software Quality Assurance using AI Agents and LLM Reasoning},
-  author={[Your Name] and [Co-authors]},
-  journal={[Journal Name]},
-  year={2024},
-  volume={[Volume]},
-  pages={[Pages]},
-  doi={[DOI]}
-}
-```
 
 ### Key Contributions
 
@@ -479,16 +448,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **OpenAI** and **Anthropic** for cloud-based LLM services
 - **Open-source community** for the repositories used in our evaluation
 
-## 📞 Contact
-
-For questions, suggestions, or collaboration opportunities:
-
-- **Email**: [your.email@institution.edu]
-- **GitHub Issues**: [Create an issue](https://github.com/your-repo/ngqa/issues)
-- **Research Group**: [Your Research Group](https://your-institution.edu/research-group)
-
----
-
-⭐ **Star this repository** if you find NGQA useful for your software quality assurance needs!
-
-🔬 **Interested in research collaboration?** We're always looking for contributors to advance automated software quality assurance!
