@@ -63,10 +63,6 @@ The NGQA pipeline consists of six sequential stages:
 ### Setup Instructions
 
 1. **Clone the repository**:
-```bash
-git clone https://github.com/your-repo/ngqa.git
-cd ngqa
-```
 
 2. **Install Python dependencies**:
 ```bash
