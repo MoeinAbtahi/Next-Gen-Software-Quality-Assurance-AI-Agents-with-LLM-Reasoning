@@ -63,21 +63,6 @@ def get_test_location_and_name(file_path):
     test_path = os.path.join(test_dir, test_file_name).replace("\\", "/")
     return (test_path, test_file_name)
 
-# def get_test_location_and_name(file_path):
-#     file_path = file_path.replace("\\", "/")
-#     base_dir, file_name = os.path.split(file_path)
-#     name, ext = os.path.splitext(file_name)
-
-#     if not ext and not name.startswith("."):
-#         return ("", "")
-
-#     if ext.lower() in TESTABLE_EXTENSIONS:
-#         test_dir = os.path.join(base_dir, "__tests__").replace("\\", "/")
-#         test_file_name = f"{name}.test{ext}"
-#         test_path = os.path.join(test_dir, test_file_name).replace("\\", "/")
-#         return (test_path, test_file_name)
-
-#     return ("", "")
 
 def get_all_issues(sonar_url, api_token, project_key):
     page_size = 500
