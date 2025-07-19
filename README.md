@@ -211,7 +211,7 @@ Simply trigger the workflow with your CSV file location. The workflow automatica
 
 ![Screenshot_17-7-2025_12820_localhost](https://github.com/user-attachments/assets/c7506f18-5774-4b79-8e98-071408843e9e)
 
-![Screenshot_17-7-2025_114935_localhost](https://github.com/user-attachments/assets/8eefbce9-f3e1-4dbe-ac54-7978b2d592b5)
+![Screenshot_19-7-2025_19384_localhost](https://github.com/user-attachments/assets/99258bce-603b-4236-abb5-37c998aae23e)
 
 ## 📁 Project Structure
 
