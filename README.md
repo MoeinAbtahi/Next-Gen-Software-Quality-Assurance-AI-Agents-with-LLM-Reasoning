@@ -209,7 +209,7 @@ Simply trigger the workflow with your CSV file location. The workflow automatica
 # 4. Check outputs in configured directories
 ```
 
-![Screenshot_17-7-2025_12820_localhost](https://github.com/user-attachments/assets/c7506f18-5774-4b79-8e98-071408843e9e)
+![Untitled](https://github.com/user-attachments/assets/6b343989-c86e-4e41-b1ac-6459c332e268)
 
 ![Screenshot_19-7-2025_19384_localhost](https://github.com/user-attachments/assets/99258bce-603b-4236-abb5-37c998aae23e)
 
